@@ -1,0 +1,7 @@
+{
+  "name": "Slingshot",
+  "description": "A front-camera hand gesture slingshot and bubble shooter game with vision analysis.",
+  "permissions": [
+    "camera"
+  ]
+}

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+output/
+artifacts/
+
+.env
+.env.*
+!.env.example
+
+*.log
+*.tsbuildinfo
+.DS_Store
+Thumbs.db

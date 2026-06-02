@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #050a0d;
+  color: #edf8fa;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(38, 236, 221, 0.1), transparent 28rem),
+    linear-gradient(135deg, #050a0d 0%, #071014 46%, #10110c 100%);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.material-panel {
+  border: 1px solid rgba(125, 211, 221, 0.13);
+  background: linear-gradient(180deg, rgba(11, 23, 29, 0.94), rgba(7, 16, 20, 0.9));
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.26);
+}
+
+.thin-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(38, 236, 221, 0.45) rgba(255, 255, 255, 0.04);
+}
+
+.thin-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(38, 236, 221, 0.45);
+  border-radius: 999px;
+}
