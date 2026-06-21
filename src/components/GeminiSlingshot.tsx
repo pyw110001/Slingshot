@@ -10,6 +10,7 @@ import {
   Zap
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import ballImgUrl from '../assets/ball.png';
 
 type CameraState = 'idle' | 'requesting' | 'live' | 'error';
 type GestureMode = 'searching' | 'tracking' | 'charging' | 'release';
@@ -443,39 +444,56 @@ function drawBackground(ctx: CanvasRenderingContext2D, game: GameState) {
   ctx.restore();
 }
 
-function drawBubble(ctx: CanvasRenderingContext2D, bubble: Bubble) {
+function drawBubble(ctx: CanvasRenderingContext2D, bubble: Bubble, sprites: Record<string, HTMLCanvasElement>) {
   if (bubble.hit) {
     return;
   }
 
-  const shimmer = Math.sin(bubble.pulse) * 0.12 + 0.88;
-  const gradient = ctx.createRadialGradient(
-    bubble.x - bubble.radius * 0.34,
-    bubble.y - bubble.radius * 0.38,
-    bubble.radius * 0.12,
-    bubble.x,
-    bubble.y,
-    bubble.radius
-  );
-  gradient.addColorStop(0, '#ffffff');
-  gradient.addColorStop(0.18, bubble.color);
-  gradient.addColorStop(1, '#071014');
+  const sprite = sprites[bubble.color];
+  if (sprite) {
+    ctx.save();
+    const shimmer = Math.sin(bubble.pulse) * 0.12 + 0.88;
+    ctx.globalAlpha = shimmer;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = bubble.color;
+    ctx.drawImage(
+      sprite,
+      bubble.x - bubble.radius,
+      bubble.y - bubble.radius,
+      bubble.radius * 2,
+      bubble.radius * 2
+    );
+    ctx.restore();
+  } else {
+    const shimmer = Math.sin(bubble.pulse) * 0.12 + 0.88;
+    const gradient = ctx.createRadialGradient(
+      bubble.x - bubble.radius * 0.34,
+      bubble.y - bubble.radius * 0.38,
+      bubble.radius * 0.12,
+      bubble.x,
+      bubble.y,
+      bubble.radius
+    );
+    gradient.addColorStop(0, '#ffffff');
+    gradient.addColorStop(0.18, bubble.color);
+    gradient.addColorStop(1, '#071014');
 
-  ctx.save();
-  ctx.globalAlpha = shimmer;
-  ctx.fillStyle = gradient;
-  ctx.shadowBlur = 18;
-  ctx.shadowColor = bubble.color;
-  ctx.beginPath();
-  ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.lineWidth = 1.5;
-  ctx.strokeStyle = 'rgba(255,255,255,0.22)';
-  ctx.stroke();
-  ctx.restore();
+    ctx.save();
+    ctx.globalAlpha = shimmer;
+    ctx.fillStyle = gradient;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = bubble.color;
+    ctx.beginPath();
+    ctx.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
-function drawSlingshot(ctx: CanvasRenderingContext2D, game: GameState) {
+function drawSlingshot(ctx: CanvasRenderingContext2D, game: GameState, sprites: Record<string, HTMLCanvasElement>) {
   const { anchor, aim, charge } = game;
   const forkLeft = { x: anchor.x - 38, y: anchor.y - 24 };
   const forkRight = { x: anchor.x + 38, y: anchor.y - 24 };
@@ -508,14 +526,25 @@ function drawSlingshot(ctx: CanvasRenderingContext2D, game: GameState) {
   ctx.lineTo(forkRight.x, forkRight.y);
   ctx.stroke();
 
-  const projectileGradient = ctx.createRadialGradient(pullPoint.x - 6, pullPoint.y - 8, 3, pullPoint.x, pullPoint.y, 24);
-  projectileGradient.addColorStop(0, '#ffffff');
-  projectileGradient.addColorStop(0.28, game.nextColor);
-  projectileGradient.addColorStop(1, '#071014');
-  ctx.fillStyle = projectileGradient;
-  ctx.beginPath();
-  ctx.arc(pullPoint.x, pullPoint.y, 20, 0, Math.PI * 2);
-  ctx.fill();
+  const sprite = sprites[game.nextColor];
+  if (sprite) {
+    ctx.drawImage(
+      sprite,
+      pullPoint.x - 20,
+      pullPoint.y - 20,
+      40,
+      40
+    );
+  } else {
+    const projectileGradient = ctx.createRadialGradient(pullPoint.x - 6, pullPoint.y - 8, 3, pullPoint.x, pullPoint.y, 24);
+    projectileGradient.addColorStop(0, '#ffffff');
+    projectileGradient.addColorStop(0.28, game.nextColor);
+    projectileGradient.addColorStop(1, '#071014');
+    ctx.fillStyle = projectileGradient;
+    ctx.beginPath();
+    ctx.arc(pullPoint.x, pullPoint.y, 20, 0, Math.PI * 2);
+    ctx.fill();
+  }
 
   ctx.setLineDash([9, 12]);
   ctx.strokeStyle = 'rgba(237,248,250,0.34)';
@@ -546,21 +575,36 @@ function drawDangerLine(ctx: CanvasRenderingContext2D, game: GameState) {
   ctx.restore();
 }
 
-function drawProjectile(ctx: CanvasRenderingContext2D, projectile: Projectile | null) {
+function drawProjectile(ctx: CanvasRenderingContext2D, projectile: Projectile | null, sprites: Record<string, HTMLCanvasElement>) {
   if (!projectile?.active) {
     return;
   }
 
-  ctx.save();
-  ctx.shadowBlur = 24;
-  ctx.shadowColor = projectile.color;
-  ctx.fillStyle = projectile.color;
-  ctx.beginPath();
-  ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
-  ctx.stroke();
-  ctx.restore();
+  const sprite = sprites[projectile.color];
+  if (sprite) {
+    ctx.save();
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = projectile.color;
+    ctx.drawImage(
+      sprite,
+      projectile.x - projectile.radius,
+      projectile.y - projectile.radius,
+      projectile.radius * 2,
+      projectile.radius * 2
+    );
+    ctx.restore();
+  } else {
+    ctx.save();
+    ctx.shadowBlur = 24;
+    ctx.shadowColor = projectile.color;
+    ctx.fillStyle = projectile.color;
+    ctx.beginPath();
+    ctx.arc(projectile.x, projectile.y, projectile.radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+    ctx.stroke();
+    ctx.restore();
+  }
 }
 
 function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[]) {
@@ -575,13 +619,13 @@ function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[]) {
   }
 }
 
-function drawGame(ctx: CanvasRenderingContext2D, game: GameState) {
+function drawGame(ctx: CanvasRenderingContext2D, game: GameState, sprites: Record<string, HTMLCanvasElement>) {
   drawBackground(ctx, game);
-  game.bubbles.forEach((bubble) => drawBubble(ctx, bubble));
+  game.bubbles.forEach((bubble) => drawBubble(ctx, bubble, sprites));
   drawParticles(ctx, game.particles);
-  drawProjectile(ctx, game.projectile);
+  drawProjectile(ctx, game.projectile, sprites);
   drawDangerLine(ctx, game);
-  drawSlingshot(ctx, game);
+  drawSlingshot(ctx, game, sprites);
 
   ctx.save();
   ctx.fillStyle = 'rgba(237,248,250,0.62)';
@@ -643,6 +687,56 @@ export default function GeminiSlingshot() {
   const [cameraError, setCameraError] = useState('');
   const [hud, setHud] = useState<HudState>(INITIAL_HUD);
 
+  const ballSpritesRef = useRef<Record<string, HTMLCanvasElement>>({});
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = ballImgUrl;
+    img.onload = () => {
+      const sprites: Record<string, HTMLCanvasElement> = {};
+
+      BUBBLE_COLORS.forEach((color) => {
+        const offscreen = document.createElement('canvas');
+        offscreen.width = img.width;
+        offscreen.height = img.height;
+        const ctx = offscreen.getContext('2d');
+        if (!ctx) return;
+
+        ctx.drawImage(img, 0, 0);
+
+        const imgData = ctx.getImageData(0, 0, img.width, img.height);
+        const data = imgData.data;
+
+        const hex = color.startsWith('#') ? color : '#ffffff';
+        const tr = parseInt(hex.slice(1, 3), 16);
+        const tg = parseInt(hex.slice(3, 5), 16);
+        const tb = parseInt(hex.slice(5, 7), 16);
+
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          const a = data[i + 3];
+
+          // Green detection: g > r && g > b && a > 0
+          if (a > 0 && g > r && g > b) {
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            const f = lum / 180.0;
+
+            data[i] = Math.min(255, tr * f);
+            data[i + 1] = Math.min(255, tg * f);
+            data[i + 2] = Math.min(255, tb * f);
+          }
+        }
+
+        ctx.putImageData(imgData, 0, 0);
+        sprites[color] = offscreen;
+      });
+
+      ballSpritesRef.current = sprites;
+    };
+  }, []);
+
   const stopCamera = useCallback(() => {
     cameraRef.current?.stop();
     cameraRef.current = null;
@@ -658,7 +752,9 @@ export default function GeminiSlingshot() {
 
   const resetGame = useCallback(() => {
     const current = gameRef.current;
-    gameRef.current = createGameState(current.width, current.height);
+    const newState = createGameState(current.width, current.height);
+    newState.dpr = current.dpr;
+    gameRef.current = newState;
     setHud({
       ...INITIAL_HUD,
       targets: gameRef.current.bubbles.length
@@ -696,12 +792,10 @@ export default function GeminiSlingshot() {
         if (!overlay || !video) return;
 
         const rect = overlay.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        overlay.width = Math.max(1, Math.floor(rect.width * dpr));
-        overlay.height = Math.max(1, Math.floor(rect.height * dpr));
+        overlay.width = Math.max(1, Math.floor(rect.width));
+        overlay.height = Math.max(1, Math.floor(rect.height));
         const ctx = overlay.getContext('2d');
         if (!ctx) return;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
         ctx.clearRect(0, 0, rect.width, rect.height);
 
         const landmarks = results.multiHandLandmarks?.[0];
@@ -798,7 +892,7 @@ export default function GeminiSlingshot() {
       if (ctx) {
         ctx.setTransform(gameRef.current.dpr, 0, 0, gameRef.current.dpr, 0, 0);
         updateGame(gameRef.current, gestureRef.current);
-        drawGame(ctx, gameRef.current);
+        drawGame(ctx, gameRef.current, ballSpritesRef.current);
       }
 
       const now = performance.now();
